@@ -20,5 +20,7 @@ ext_modules = [
 ]
 
 setup(
+    name='mise',
+    version='0.1',
     ext_modules=cythonize(ext_modules)
 )
