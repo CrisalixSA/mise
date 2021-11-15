@@ -1,2 +1,5 @@
 [build-system]
-requires = ["cython"]
+requires = [
+    "setuptools",
+    "cython"
+    ]
