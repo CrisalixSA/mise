@@ -9,5 +9,5 @@ python setup.py install
 
 ## Run test
 ```
-python lib/test.py
+python examples/test.py --output-mesh PATH
 ```
