@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import time
-import os
 import trimesh
 import math
 import argparse
