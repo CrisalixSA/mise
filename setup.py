@@ -29,7 +29,7 @@ ext_modules = [
 
 setup(
     name=PACKAGE_NAME,
-    version='0.1',
+    version='0.0.1',
     ext_modules=cythonize(ext_modules),
     author='Crisalix SA',
     description='Python package for MISE surface extraction',
