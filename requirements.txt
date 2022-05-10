@@ -1,5 +1,5 @@
 Cython
-numpy
-torch
-trimesh
-scikit-image
+numpy~=1.16.4
+torch~=1.8.1
+trimesh~=3.9.7
+scikit-image~=0.17.2
