@@ -3,6 +3,7 @@ cimport cython
 from cython.operator cimport dereference as dref
 from libcpp.vector cimport vector
 from libcpp.map cimport map
+from libc.stdint cimport int64_t, uint64_t
 from libc.math cimport isnan, NAN
 import numpy as np
 
@@ -15,7 +16,7 @@ cdef struct Voxel:
     Vector3D loc
     unsigned int level
     bint is_leaf
-    unsigned long children[2][2][2]
+    uint64_t children[2][2][2]
 
 
 cdef struct GridPoint:
@@ -24,8 +25,8 @@ cdef struct GridPoint:
     bint known
 
 
-cdef inline unsigned long vec_to_idx(Vector3D coord, long resolution):
-    cdef unsigned long idx
+cdef inline uint64_t vec_to_idx(Vector3D coord, int64_t resolution):
+    cdef uint64_t idx
     idx = resolution * resolution * coord.x + resolution * coord.y + coord.z
     return idx
 
@@ -33,7 +34,7 @@ cdef inline unsigned long vec_to_idx(Vector3D coord, long resolution):
 cdef class MISE:
     cdef vector[Voxel] voxels
     cdef vector[GridPoint] grid_points
-    cdef map[long, long] grid_point_hash
+    cdef map[int64_t, int64_t] grid_point_hash
     cdef readonly int resolution_0
     cdef readonly int depth
     cdef readonly double threshold
@@ -84,12 +85,12 @@ cdef class MISE:
                     assert(self.grid_points.size() == vec_to_idx(Vector3D(i, j, k), resolution_0 + 1))
                     self.add_grid_point(loc)
 
-    def update(self, long[:, :] points, double[:] values):
+    def update(self, int64_t[:, :] points, double[:] values):
         """Update points and set their values. Also determine all active voxels and subdivide them."""
         assert(points.shape[0] == values.shape[0])
         assert(points.shape[1] == 3)
         cdef Vector3D loc
-        cdef long idx
+        cdef int64_t idx
         cdef int i
 
         # Find all indices of point and set value
@@ -119,7 +120,7 @@ cdef class MISE:
 
         # Convert to numpy
         points_np = np.zeros((points.size(), 3), dtype=np.int64)
-        cdef long[:, :] points_view = points_np
+        cdef int64_t[:, :] points_view = points_np
         for i in range(points.size()):
             points_view[i, 0] = points[i].x
             points_view[i, 1] = points[i].y
@@ -167,7 +168,7 @@ cdef class MISE:
         points_np = np.zeros((self.grid_points.size(), 3), dtype=np.int64)
         values_np = np.zeros((self.grid_points.size()), dtype=np.float64)
 
-        cdef long[:, :] points_view = points_np
+        cdef int64_t[:, :] points_view = points_np
         cdef double[:] values_view = values_np
         cdef Vector3D loc
         cdef int i
@@ -185,7 +186,7 @@ cdef class MISE:
         cdef vector[bint] next_to_positive
         cdef vector[bint] next_to_negative
         cdef int i, j, k
-        cdef long idx
+        cdef int64_t idx
         cdef Vector3D loc, adj_loc
 
         # Initialize vectors
@@ -234,7 +235,7 @@ cdef class MISE:
             if next_to_positive[idx] and next_to_negative[idx]:
                 self.subdivide_voxel(idx)
 
-    cdef void subdivide_voxel(self, long idx):
+    cdef void subdivide_voxel(self, int64_t idx):
         cdef Voxel voxel
         cdef GridPoint point
         cdef Vector3D loc0 = self.voxels[idx].loc
@@ -281,13 +282,13 @@ cdef class MISE:
 
 
     @cython.cdivision(True)
-    cdef long get_voxel_idx(self, Vector3D loc) except +:
+    cdef int64_t get_voxel_idx(self, Vector3D loc) except +:
         """Utility function for getting voxel index corresponding to 3D coordinates."""
         # Shorthands
-        cdef long resolution = self.resolution
-        cdef long resolution_0 = self.resolution_0
-        cdef long depth = self.depth
-        cdef long voxel_size_0 = self.voxel_size_0
+        cdef int64_t resolution = self.resolution
+        cdef int64_t resolution_0 = self.resolution_0
+        cdef int64_t depth = self.depth
+        cdef int64_t voxel_size_0 = self.voxel_size_0
 
         # Return -1 if point lies outside bounds
         if not (0 <= loc.x < resolution and 0<= loc.y < resolution and 0 <= loc.z < resolution):
@@ -315,7 +316,7 @@ cdef class MISE:
         )
 
         cdef Vector3D loc_offset
-        cdef long voxel_size = voxel_size_0
+        cdef int64_t voxel_size = voxel_size_0
 
         while not voxel.is_leaf:
             voxel_size = voxel_size >> 1
